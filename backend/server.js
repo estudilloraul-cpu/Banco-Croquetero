@@ -1,90 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
-const puppeteer = require("puppeteer-core");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const TOKEN = process.env.TOKEN || process.env.TELEGRAM_TOKEN;
+const TOKEN = process.env.TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 
 app.get("/", (req, res) => {
   res.send("🧆 Banco Croquetero backend OK");
-});
-
-app.get("/sync-comuniate", async (req, res) => {
-  let browser;
-
-  try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    });
-
-    const page = await browser.newPage();
-
-    await page.goto("https://www.comuniate.com/puntos/comunio", {
-      waitUntil: "networkidle2",
-      timeout: 60000
-    });
-
-    await page.waitForTimeout(5000);
-
-    const data = await page.evaluate(() => {
-      function limpiar(txt) {
-        return String(txt || "").replace(/\s+/g, " ").trim();
-      }
-
-      const texto = limpiar(document.body.innerText || "");
-      const lineas = texto
-        .split("\n")
-        .map(limpiar)
-        .filter(Boolean);
-
-      const resultados = [];
-
-      for (const linea of lineas) {
-        const m = linea.match(/^(\d{1,2})\s+(.+?)\s+\d{1,3}(?:\.\d{3})+(?:€)?\s+11\s*=?\s*[\d.,]+\s+(-?\d{1,3})\s+(\d{1,5})$/i);
-        if (!m) continue;
-
-        const posicion = Number(m[1]);
-        const nombre = limpiar(m[2]);
-        const puntos = Number(m[3]);
-
-        if (!nombre || !Number.isFinite(puntos)) continue;
-
-        resultados.push({
-          nombre,
-          puntos,
-          once: 0,
-          posicionOriginal: posicion
-        });
-      }
-
-      const unicos = [];
-      const vistos = new Set();
-
-      for (const j of resultados) {
-        const key = j.nombre.toUpperCase();
-        if (!vistos.has(key)) {
-          vistos.add(key);
-          unicos.push(j);
-        }
-      }
-
-      return unicos;
-    });
-
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.status(200).send(JSON.stringify(data));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error scraping Comuniate" });
-  } finally {
-    if (browser) await browser.close();
-  }
 });
 
 app.post("/confirmar", async (req, res) => {
@@ -134,6 +60,7 @@ app.post("/confirmar", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Servidor arrancado");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor funcionando en puerto ${PORT}`);
 });
