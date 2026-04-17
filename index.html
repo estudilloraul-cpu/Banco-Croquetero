@@ -617,7 +617,13 @@
           renderResumen(ultimoResumen);
         }
 
-        const res = await fetch(API + "/confirmar");
+        const res = await fetch(API + "/confirmar", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(ultimoResumen)
+});
         const txt = await res.text();
 
         if (!res.ok) throw new Error(txt || "No se pudo enviar el pago.");
