@@ -1,22 +1,24 @@
 const express = require("express");
+const cors = require("cors");
 const axios = require("axios");
 const puppeteer = require("puppeteer-core");
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
-const TOKEN = process.env.TELEGRAM_TOKEN;
+const TOKEN = process.env.TOKEN || process.env.TELEGRAM_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 
-// TEST
 app.get("/", (req, res) => {
   res.send("🧆 Banco Croquetero backend OK");
 });
 
-// 🔥 SCRAPER COMUNIATE
 app.get("/sync-comuniate", async (req, res) => {
+  let browser;
+
   try {
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
@@ -24,76 +26,114 @@ app.get("/sync-comuniate", async (req, res) => {
     const page = await browser.newPage();
 
     await page.goto("https://www.comuniate.com/puntos/comunio", {
-      waitUntil: "networkidle2"
+      waitUntil: "networkidle2",
+      timeout: 60000
     });
 
     await page.waitForTimeout(5000);
 
     const data = await page.evaluate(() => {
+      function limpiar(txt) {
+        return String(txt || "").replace(/\s+/g, " ").trim();
+      }
+
+      const texto = limpiar(document.body.innerText || "");
+      const lineas = texto
+        .split("\n")
+        .map(limpiar)
+        .filter(Boolean);
+
       const resultados = [];
 
-      const filas = document.querySelectorAll("*");
+      for (const linea of lineas) {
+        const m = linea.match(/^(\d{1,2})\s+(.+?)\s+\d{1,3}(?:\.\d{3})+(?:€)?\s+11\s*=?\s*[\d.,]+\s+(-?\d{1,3})\s+(\d{1,5})$/i);
+        if (!m) continue;
 
-      filas.forEach(el => {
-        const txt = el.innerText?.trim();
+        const posicion = Number(m[1]);
+        const nombre = limpiar(m[2]);
+        const puntos = Number(m[3]);
 
-        if (!txt) return;
+        if (!nombre || !Number.isFinite(puntos)) continue;
 
-        const match = txt.match(/^(\d{1,2})\s+([A-Za-zÁÉÍÓÚÑñ\s]+)\s+\d{1,3}(?:\.\d{3})+(?:€)?\s+11\s+[\d.]+\s+(\d{1,3})/);
+        resultados.push({
+          nombre,
+          puntos,
+          once: 0,
+          posicionOriginal: posicion
+        });
+      }
 
-        if (match) {
-          resultados.push({
-            nombre: match[2].trim(),
-            puntos: Number(match[3]),
-            once: 0
-          });
-        }
-      });
-
-      // quitar duplicados
-      const únicos = [];
+      const unicos = [];
       const vistos = new Set();
 
-      resultados.forEach(j => {
-        if (!vistos.has(j.nombre)) {
-          vistos.add(j.nombre);
-          únicos.push(j);
+      for (const j of resultados) {
+        const key = j.nombre.toUpperCase();
+        if (!vistos.has(key)) {
+          vistos.add(key);
+          unicos.push(j);
         }
-      });
+      }
 
-      return únicos;
+      return unicos;
     });
 
-    await browser.close();
-
-    res.json(data);
-
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.status(200).send(JSON.stringify(data));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error scraping Comuniate" });
+  } finally {
+    if (browser) await browser.close();
   }
 });
 
-// TELEGRAM
 app.post("/confirmar", async (req, res) => {
   try {
+    if (!TOKEN || !CHAT_ID) {
+      return res.status(500).send("❌ Faltan TOKEN o CHAT_ID");
+    }
+
     const pagos = req.body;
 
-    let mensaje = "🧆 BANCO CROQUETERO\n\n";
+    if (!Array.isArray(pagos) || !pagos.length) {
+      return res.status(400).send("❌ No hay datos de pagos");
+    }
+
+    let mensaje = "🧆 <b>BANCO CROQUETERO</b>\n";
+    mensaje += "<b>Croquetas Power</b>\n\n";
 
     pagos.forEach(j => {
-      mensaje += `${j.nombre}: +${j.total.toLocaleString()}€\n`;
+      let icono = "▪️";
+      if (j.posicion === 1) icono = "🥇";
+      if (j.posicion === 2) icono = "🥈";
+      if (j.posicion === 3) icono = "🥉";
+
+      mensaje += `${icono} <b>${j.nombre}</b>\n`;
+      mensaje += `📊 Puntos: ${j.puntos}\n`;
+      mensaje += `🏁 Posición jornada: ${j.posicion}\n`;
+      mensaje += `💰 Premio posición: ${Number(j.premio || 0).toLocaleString("es-ES")}€\n`;
+      mensaje += `📈 Bonus puntos: ${Number(j.bonus || 0).toLocaleString("es-ES")}€\n`;
+      mensaje += `⭐ Once ideal: ${Number(j.once || 0)}\n`;
+      mensaje += `🧆 Bonus once ideal: ${Number(j.bonusOnce || 0).toLocaleString("es-ES")}€\n`;
+      mensaje += `💸 Total abono: ${Number(j.total || 0).toLocaleString("es-ES")}€\n\n`;
     });
+
+    const totalRepartido = pagos.reduce((acc, j) => acc + Number(j.total || 0), 0);
+    mensaje += `🏦 <b>Total repartido:</b> ${totalRepartido.toLocaleString("es-ES")}€`;
 
     await axios.post(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
       chat_id: CHAT_ID,
-      text: mensaje
+      text: mensaje,
+      parse_mode: "HTML"
     });
 
-    res.send("OK");
-  } catch (e) {
-    res.status(500).send("Error Telegram");
+    res.send("✅ Pagos enviados correctamente");
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    res.status(500).send("❌ Error enviando Telegram");
   }
 });
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Servidor arrancado");
+});
