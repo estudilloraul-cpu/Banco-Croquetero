@@ -6,9 +6,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 🔔 Variables de Render
 const TOKEN = process.env.TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 
+// 🧪 Datos de prueba (luego conectamos con Comunio)
 const jugadores = [
   { nombre: "Raúl", puntos: 72, posicion: 1, once: 2 },
   { nombre: "Pedro", puntos: 65, posicion: 2, once: 1 },
@@ -16,6 +18,7 @@ const jugadores = [
   { nombre: "Carlos", puntos: 55, posicion: 4, once: 2 }
 ];
 
+// 💰 Cálculo de pagos
 function calcularPagos(data) {
   const premios = {
     1: 1500000,
@@ -47,41 +50,52 @@ function calcularPagos(data) {
   });
 }
 
+// 🟢 Ruta base
 app.get("/", (req, res) => {
-  res.send("Banco Croquetero backend OK");
+  res.send("🧆 Banco Croquetero backend OK");
 });
 
+// 📊 Previsualizar pagos
 app.get("/pagos", (req, res) => {
   res.json(calcularPagos(jugadores));
 });
 
+// 🚀 Confirmar + enviar Telegram
 app.get("/confirmar", async (req, res) => {
   const pagos = calcularPagos(jugadores);
 
-  let mensaje = "🧆 BANCO CROQUETERO\\n\\nPagos jornada:\\n\\n";
+  // 🧆 Mensaje bonito
+  let mensaje = "🧆 <b>BANCO CROQUETERO</b>\n";
+  mensaje += "━━━━━━━━━━━━━━\n";
+  mensaje += "💸 <b>Pagos de la jornada</b>\n\n";
 
-  pagos.forEach(j => {
-    mensaje += `${j.nombre}: +${j.total.toLocaleString()}€\\n`;
+  pagos.forEach((j, i) => {
+    mensaje += `${i + 1}. <b>${j.nombre}</b>\n`;
+    mensaje += `   • Total: <b>+${j.total.toLocaleString("es-ES")}€</b>\n\n`;
   });
+
+  mensaje += "✅ Pagos realizados";
 
   try {
     if (!TOKEN || !CHAT_ID) {
-      return res.status(500).send("Faltan TOKEN o CHAT_ID en Render");
+      return res.status(500).send("❌ Faltan TOKEN o CHAT_ID");
     }
 
     await axios.post(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
       chat_id: CHAT_ID,
-      text: mensaje
+      text: mensaje,
+      parse_mode: "HTML"
     });
 
-    res.send("✅ Pagos confirmados y notificación enviada");
+    res.send("✅ Pagos enviados correctamente");
   } catch (error) {
     console.error(error.response?.data || error.message);
     res.status(500).send("❌ Error enviando Telegram");
   }
 });
 
+// 🔌 Servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor en puerto ${PORT}`);
+  console.log(`🚀 Servidor funcionando en puerto ${PORT}`);
 });
