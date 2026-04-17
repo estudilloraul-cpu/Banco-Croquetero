@@ -5,26 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Banco Croquetero</title>
   <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #f3f7f2;
       color: #18212f;
     }
-
     .app {
-      max-width: 520px;
+      max-width: 560px;
       margin: 0 auto;
       min-height: 100vh;
       background: #f3f7f2;
       padding-bottom: 110px;
     }
-
     .hero {
       background: linear-gradient(135deg, #2f9e44 0%, #24863a 100%);
       color: white;
@@ -33,13 +27,11 @@
       border-bottom-right-radius: 26px;
       box-shadow: 0 12px 28px rgba(47, 158, 68, 0.22);
     }
-
     .brand {
       display: flex;
       align-items: center;
       gap: 14px;
     }
-
     .logo {
       width: 66px;
       height: 66px;
@@ -52,7 +44,6 @@
       box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.12);
       flex-shrink: 0;
     }
-
     .eyebrow {
       margin: 0 0 5px;
       font-size: 12px;
@@ -61,25 +52,21 @@
       opacity: 0.9;
       font-weight: 700;
     }
-
     .title {
       margin: 0;
       font-size: 28px;
       line-height: 1.05;
       font-weight: 900;
     }
-
     .subtitle {
       margin: 10px 0 0;
       font-size: 14px;
       opacity: 0.95;
     }
-
     .content {
       padding: 16px;
       margin-top: -12px;
     }
-
     .card {
       background: white;
       border-radius: 18px;
@@ -87,11 +74,9 @@
       margin-bottom: 14px;
       overflow: hidden;
     }
-
-    .status-card {
-      padding: 15px 16px;
+    .card-inner {
+      padding: 16px;
     }
-
     .label {
       font-size: 11px;
       color: #6b7280;
@@ -100,14 +85,12 @@
       letter-spacing: 0.8px;
       margin: 0 0 8px;
     }
-
     .status-text {
       margin: 0;
       font-size: 14px;
       font-weight: 700;
       line-height: 1.4;
     }
-
     .summary {
       padding: 16px;
       display: flex;
@@ -115,7 +98,6 @@
       align-items: center;
       gap: 12px;
     }
-
     .summary-total {
       margin: 0;
       font-size: 30px;
@@ -123,7 +105,6 @@
       color: #111827;
       line-height: 1;
     }
-
     .summary-side {
       background: #edf7ef;
       border-radius: 14px;
@@ -131,7 +112,6 @@
       min-width: 94px;
       text-align: center;
     }
-
     .summary-side .num {
       margin: 4px 0 0;
       font-size: 24px;
@@ -139,100 +119,68 @@
       color: #2f9e44;
       line-height: 1;
     }
-
     .section-head {
       padding: 16px 16px 10px;
       border-bottom: 1px solid #f1f3f5;
     }
-
     .section-title {
       margin: 0;
       font-size: 18px;
       font-weight: 900;
     }
-
-    .player {
-      padding: 16px;
+    .player-edit {
+      padding: 14px 16px;
       border-top: 1px solid #f1f3f5;
     }
-
-    .player:first-child {
+    .player-edit:first-child {
       border-top: none;
     }
-
-    .player-top {
+    .player-edit-top {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 12px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
     }
-
-    .player-name {
-      margin: 0 0 5px;
-      font-size: 17px;
+    .player-edit-name {
+      font-size: 16px;
       font-weight: 900;
-      line-height: 1.2;
-    }
-
-    .player-meta {
       margin: 0;
-      color: #6b7280;
-      font-size: 14px;
-      font-weight: 600;
     }
-
-    .badge-total {
-      background: #edf7ef;
-      border-radius: 14px;
-      padding: 10px 12px;
-      min-width: 118px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    .badge-total .small {
-      font-size: 10px;
-      text-transform: uppercase;
-      color: #6b7280;
-      font-weight: 800;
-      margin-bottom: 4px;
-      letter-spacing: 0.8px;
-    }
-
-    .badge-total .big {
-      font-size: 17px;
-      color: #2f9e44;
-      font-weight: 900;
-      line-height: 1.1;
-    }
-
-    .details {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+    .player-edit-actions {
+      display: flex;
       gap: 8px;
     }
-
-    .detail {
-      background: #f8faf8;
+    .mini-btn {
+      border: none;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      background: #f3f4f6;
+    }
+    .mini-btn.danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 10px;
+    }
+    .input, .number-input {
+      width: 100%;
+      border: 1px solid #dbe2e8;
       border-radius: 12px;
-      padding: 10px;
+      padding: 12px;
+      font-size: 15px;
+      outline: none;
+      background: white;
     }
-
-    .detail .d-label {
-      font-size: 11px;
-      color: #6b7280;
-      margin-bottom: 6px;
-      font-weight: 700;
+    .input:focus, .number-input:focus {
+      border-color: #2f9e44;
     }
-
-    .detail .d-value {
-      font-size: 13px;
-      font-weight: 900;
-      color: #111827;
-      line-height: 1.2;
-    }
-
     .empty {
       padding: 32px 18px;
       text-align: center;
@@ -240,7 +188,6 @@
       font-size: 14px;
       font-weight: 600;
     }
-
     .bottom-bar {
       position: fixed;
       left: 0;
@@ -249,15 +196,13 @@
       padding: 12px 14px 18px;
       background: linear-gradient(to top, rgba(243,247,242,1) 70%, rgba(243,247,242,0));
     }
-
     .bottom-inner {
-      max-width: 520px;
+      max-width: 560px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-
     button {
       border: none;
       border-radius: 16px;
@@ -268,47 +213,90 @@
       transition: transform 0.12s ease, opacity 0.12s ease;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
-
-    button:active {
-      transform: scale(0.98);
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.65; cursor: not-allowed; }
+    .btn-light { background: white; color: #1f2937; }
+    .btn-green { background: #2f9e44; color: white; }
+    .add-row {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 10px;
+      margin-top: 10px;
     }
-
-    button:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
+    .player {
+      padding: 16px;
+      border-top: 1px solid #f1f3f5;
     }
-
-    .btn-light {
-      background: white;
-      color: #1f2937;
+    .player:first-child { border-top: none; }
+    .player-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
     }
-
-    .btn-green {
-      background: #2f9e44;
-      color: white;
+    .player-name {
+      margin: 0 0 5px;
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
     }
-
+    .player-meta {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .badge-total {
+      background: #edf7ef;
+      border-radius: 14px;
+      padding: 10px 12px;
+      min-width: 118px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .badge-total .small {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #6b7280;
+      font-weight: 800;
+      margin-bottom: 4px;
+      letter-spacing: 0.8px;
+    }
+    .badge-total .big {
+      font-size: 17px;
+      color: #2f9e44;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .detail {
+      background: #f8faf8;
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .detail .d-label {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .detail .d-value {
+      font-size: 13px;
+      font-weight: 900;
+      color: #111827;
+      line-height: 1.2;
+    }
     @media (max-width: 420px) {
-      .title {
-        font-size: 24px;
-      }
-
-      .summary-total {
-        font-size: 24px;
-      }
-
-      .player-top {
-        flex-direction: column;
-      }
-
-      .badge-total {
-        width: 100%;
-        text-align: left;
-      }
-
-      .details {
-        grid-template-columns: 1fr;
-      }
+      .title { font-size: 24px; }
+      .summary-total { font-size: 24px; }
+      .player-top { flex-direction: column; }
+      .badge-total { width: 100%; text-align: left; }
+      .details, .edit-grid, .add-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -326,9 +314,11 @@
     </div>
 
     <div class="content">
-      <div class="card status-card">
-        <p class="label">Estado</p>
-        <p class="status-text" id="estado">Pulsa PREVISUALIZAR para cargar la jornada.</p>
+      <div class="card">
+        <div class="card-inner">
+          <p class="label">Estado</p>
+          <p class="status-text" id="estado">Edita los puntos y pulsa PREVISUALIZAR.</p>
+        </div>
       </div>
 
       <div class="card">
@@ -346,10 +336,24 @@
 
       <div class="card">
         <div class="section-head">
+          <h2 class="section-title">Gestionar jugadores</h2>
+        </div>
+        <div id="editorJugadores"></div>
+        <div class="card-inner">
+          <p class="label">Añadir jugador</p>
+          <div class="add-row">
+            <input id="nuevoNombre" class="input" placeholder="Nombre del jugador" />
+            <button class="btn-light" onclick="agregarJugador()">AÑADIR</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
           <h2 class="section-title">Resumen de pagos</h2>
         </div>
         <div id="resultado">
-          <div class="empty">Todavía no hay pagos cargados.</div>
+          <div class="empty">Todavía no hay pagos calculados.</div>
         </div>
       </div>
     </div>
@@ -364,6 +368,32 @@
 
   <script>
     const API = "https://banco-croquetero.onrender.com";
+    const STORAGE_KEY = "bancoCroqueteroJugadores";
+    let ultimoResumen = [];
+
+    const jugadoresIniciales = [
+      { nombre: "Raúl", puntos: 72, once: 2 },
+      { nombre: "Pedro", puntos: 65, once: 1 },
+      { nombre: "Luis", puntos: 48, once: 0 },
+      { nombre: "Carlos", puntos: 55, once: 2 }
+    ];
+
+    function cargarJugadores() {
+      const guardados = localStorage.getItem(STORAGE_KEY);
+      if (!guardados) return jugadoresIniciales;
+      try {
+        const data = JSON.parse(guardados);
+        return Array.isArray(data) && data.length ? data : jugadoresIniciales;
+      } catch {
+        return jugadoresIniciales;
+      }
+    }
+
+    let jugadores = cargarJugadores();
+
+    function guardarJugadores() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(jugadores));
+    }
 
     function euros(valor) {
       return Number(valor || 0).toLocaleString("es-ES") + "€";
@@ -376,63 +406,197 @@
       return "⚽";
     }
 
+    function calcularPagos(data) {
+      const ordenados = [...data]
+        .map(j => ({
+          nombre: (j.nombre || "").trim(),
+          puntos: Number(j.puntos || 0),
+          once: Number(j.once || 0)
+        }))
+        .filter(j => j.nombre)
+        .sort((a, b) => b.puntos - a.puntos);
+
+      const premios = {
+        1: 1500000,
+        2: 1250000,
+        3: 1000000,
+        4: 750000,
+        5: 500000,
+        6: 250000
+      };
+
+      return ordenados.map((j, index) => {
+        const posicion = index + 1;
+        const premio = premios[posicion] || 0;
+
+        let bonus = 0;
+        if (j.puntos > 50) {
+          bonus = (Math.floor((j.puntos - 50) / 10) + 1) * 250000;
+        }
+
+        const bonusOnce = j.once * 400000;
+        const total = premio + bonus + bonusOnce;
+
+        return {
+          ...j,
+          posicion,
+          premio,
+          bonus,
+          bonusOnce,
+          total
+        };
+      });
+    }
+
+    function renderEditor() {
+      const cont = document.getElementById("editorJugadores");
+      document.getElementById("numJugadores").textContent = jugadores.length;
+
+      if (!jugadores.length) {
+        cont.innerHTML = '<div class="empty">No hay jugadores todavía.</div>';
+        return;
+      }
+
+      cont.innerHTML = jugadores.map((j, index) => `
+        <div class="player-edit">
+          <div class="player-edit-top">
+            <p class="player-edit-name">${j.nombre || "Sin nombre"}</p>
+            <div class="player-edit-actions">
+              <button class="mini-btn" onclick="guardarCambiosJugador(${index})">GUARDAR</button>
+              <button class="mini-btn danger" onclick="borrarJugador(${index})">BORRAR</button>
+            </div>
+          </div>
+          <div class="edit-grid">
+            <input
+              id="nombre-${index}"
+              class="input"
+              value="${escapeHtml(j.nombre || "")}"
+              placeholder="Nombre"
+            />
+            <input
+              id="puntos-${index}"
+              class="number-input"
+              type="number"
+              value="${Number(j.puntos || 0)}"
+              placeholder="Puntos"
+            />
+          </div>
+          <div class="edit-grid" style="margin-top:10px;">
+            <input
+              id="once-${index}"
+              class="number-input"
+              type="number"
+              value="${Number(j.once || 0)}"
+              placeholder="Once ideal"
+            />
+            <div></div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function guardarCambiosJugador(index) {
+      const nombre = document.getElementById(`nombre-${index}`).value.trim();
+      const puntos = Number(document.getElementById(`puntos-${index}`).value || 0);
+      const once = Number(document.getElementById(`once-${index}`).value || 0);
+
+      jugadores[index] = { nombre, puntos, once };
+      guardarJugadores();
+      renderEditor();
+      document.getElementById("estado").textContent = "Jugador actualizado.";
+    }
+
+    function borrarJugador(index) {
+      if (!confirm("¿Borrar este jugador?")) return;
+      jugadores.splice(index, 1);
+      guardarJugadores();
+      renderEditor();
+      document.getElementById("estado").textContent = "Jugador borrado.";
+      ultimoResumen = [];
+      document.getElementById("resultado").innerHTML = '<div class="empty">Todavía no hay pagos calculados.</div>';
+      document.getElementById("totalJornada").textContent = "0€";
+    }
+
+    function agregarJugador() {
+      const input = document.getElementById("nuevoNombre");
+      const nombre = input.value.trim();
+      if (!nombre) return;
+
+      jugadores.push({ nombre, puntos: 0, once: 0 });
+      guardarJugadores();
+      renderEditor();
+      input.value = "";
+      document.getElementById("estado").textContent = "Jugador añadido.";
+    }
+
+    function renderResumen(data) {
+      const resultado = document.getElementById("resultado");
+
+      if (!data.length) {
+        resultado.innerHTML = '<div class="empty">No hay datos disponibles.</div>';
+        return;
+      }
+
+      resultado.innerHTML = data.map(j => `
+        <div class="player">
+          <div class="player-top">
+            <div>
+              <p class="player-name">${medalla(j.posicion)} ${j.nombre}</p>
+              <p class="player-meta">${j.puntos} pts · Puesto ${j.posicion}</p>
+            </div>
+            <div class="badge-total">
+              <div class="small">Total</div>
+              <div class="big">+${euros(j.total)}</div>
+            </div>
+          </div>
+
+          <div class="details">
+            <div class="detail">
+              <div class="d-label">Premio</div>
+              <div class="d-value">${euros(j.premio)}</div>
+            </div>
+            <div class="detail">
+              <div class="d-label">Bonus</div>
+              <div class="d-value">${euros(j.bonus)}</div>
+            </div>
+            <div class="detail">
+              <div class="d-label">Once</div>
+              <div class="d-value">${euros(j.bonusOnce)}</div>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
     async function preview() {
       const btn = document.getElementById("btnPreview");
       const estado = document.getElementById("estado");
-      const resultado = document.getElementById("resultado");
 
       btn.disabled = true;
       btn.textContent = "CARGANDO...";
-      estado.textContent = "Cargando pagos de la jornada...";
+      estado.textContent = "Calculando pagos...";
 
       try {
-        const res = await fetch(API + "/pagos");
-        if (!res.ok) throw new Error("No se han podido cargar los pagos.");
-
-        const data = await res.json();
-        const total = data.reduce((acc, j) => acc + (j.total || 0), 0);
+        guardarJugadores();
+        const resumen = calcularPagos(jugadores);
+        ultimoResumen = resumen;
+        const total = resumen.reduce((acc, j) => acc + (j.total || 0), 0);
 
         document.getElementById("totalJornada").textContent = euros(total);
-        document.getElementById("numJugadores").textContent = data.length;
+        document.getElementById("numJugadores").textContent = jugadores.length;
+        renderResumen(resumen);
         estado.textContent = "Resumen cargado correctamente.";
-
-        if (!data.length) {
-          resultado.innerHTML = '<div class="empty">No hay datos disponibles.</div>';
-          return;
-        }
-
-        resultado.innerHTML = data.map(j => `
-          <div class="player">
-            <div class="player-top">
-              <div>
-                <p class="player-name">${medalla(j.posicion)} ${j.nombre}</p>
-                <p class="player-meta">${j.puntos} pts · Puesto ${j.posicion}</p>
-              </div>
-              <div class="badge-total">
-                <div class="small">Total</div>
-                <div class="big">+${euros(j.total)}</div>
-              </div>
-            </div>
-
-            <div class="details">
-              <div class="detail">
-                <div class="d-label">Premio</div>
-                <div class="d-value">${euros(j.premio)}</div>
-              </div>
-              <div class="detail">
-                <div class="d-label">Bonus</div>
-                <div class="d-value">${euros(j.bonus)}</div>
-              </div>
-              <div class="detail">
-                <div class="d-label">Once</div>
-                <div class="d-value">${euros(j.bonusOnce)}</div>
-              </div>
-            </div>
-          </div>
-        `).join("");
       } catch (error) {
-        estado.textContent = error.message || "Error al cargar pagos.";
-        resultado.innerHTML = '<div class="empty">No se pudo cargar la información.</div>';
+        estado.textContent = "Error al calcular pagos.";
       } finally {
         btn.disabled = false;
         btn.textContent = "PREVISUALIZAR";
@@ -448,6 +612,11 @@
       estado.textContent = "Enviando pagos al grupo...";
 
       try {
+        if (!ultimoResumen.length) {
+          ultimoResumen = calcularPagos(jugadores);
+          renderResumen(ultimoResumen);
+        }
+
         const res = await fetch(API + "/confirmar");
         const txt = await res.text();
 
@@ -463,6 +632,8 @@
         btn.textContent = "💸 PAGO";
       }
     }
+
+    renderEditor();
   </script>
 </body>
 </html>
