@@ -166,10 +166,10 @@
     }
     .edit-grid {
       display: grid;
-      grid-template-columns: 1fr 120px;
+      grid-template-columns: 1fr 120px 120px;
       gap: 10px;
     }
-    .input, .number-input {
+    .input, .number-input, .textarea {
       width: 100%;
       border: 1px solid #dbe2e8;
       border-radius: 12px;
@@ -177,8 +177,13 @@
       font-size: 15px;
       outline: none;
       background: white;
+      font-family: Arial, sans-serif;
     }
-    .input:focus, .number-input:focus {
+    .textarea {
+      min-height: 160px;
+      resize: vertical;
+    }
+    .input:focus, .number-input:focus, .textarea:focus {
       border-color: #2f9e44;
     }
     .empty {
@@ -217,6 +222,7 @@
     button:disabled { opacity: 0.65; cursor: not-allowed; }
     .btn-light { background: white; color: #1f2937; }
     .btn-green { background: #2f9e44; color: white; }
+    .btn-blue { background: #2563eb; color: white; }
     .add-row {
       display: grid;
       grid-template-columns: 1fr 120px;
@@ -271,7 +277,7 @@
     }
     .details {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
     }
     .detail {
@@ -291,6 +297,12 @@
       color: #111827;
       line-height: 1.2;
     }
+    .hint {
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
     @media (max-width: 420px) {
       .title { font-size: 24px; }
       .summary-total { font-size: 24px; }
@@ -308,7 +320,7 @@
         <div>
           <p class="eyebrow">Croquetas Power</p>
           <h1 class="title">BANCO CROQUETERO</h1>
-          <p class="subtitle">Gestión rápida de pagos de jornada</p>
+          <p class="subtitle">Importa Comuniate, calcula y paga</p>
         </div>
       </div>
     </div>
@@ -317,7 +329,7 @@
       <div class="card">
         <div class="card-inner">
           <p class="label">Estado</p>
-          <p class="status-text" id="estado">Edita los puntos y pulsa PREVISUALIZAR.</p>
+          <p class="status-text" id="estado">Pega la clasificación de Comuniate y pulsa IMPORTAR.</p>
         </div>
       </div>
 
@@ -331,6 +343,23 @@
             <p class="label" style="margin:0;">Jugadores</p>
             <p class="num" id="numJugadores">0</p>
           </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <h2 class="section-title">Importar desde Comuniate</h2>
+        </div>
+        <div class="card-inner">
+          <textarea
+            id="textoComuniate"
+            class="textarea"
+            placeholder="Pega aquí la clasificación de Comuniate en modo listado o copia la tabla con nombres y puntos de jornada."
+          ></textarea>
+          <button class="btn-blue" style="width:100%; margin-top:10px;" onclick="importarComuniate()">IMPORTAR</button>
+          <p class="hint">
+            Consejo: en Comuniate usa “VER MODO LISTADO”, copia el texto y pégalo aquí.
+          </p>
         </div>
       </div>
 
@@ -406,6 +435,22 @@
       return "⚽";
     }
 
+    function normalizarNombre(nombre) {
+      return String(nombre || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toUpperCase();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
     function calcularPagos(data) {
       const ordenados = [...data]
         .map(j => ({
@@ -434,7 +479,7 @@
           bonus = (Math.floor((j.puntos - 50) / 10) + 1) * 250000;
         }
 
-        const bonusOnce = j.once * 400000;
+        const bonusOnce = Number(j.once || 0) * 400000;
         const total = premio + bonus + bonusOnce;
 
         return {
@@ -460,7 +505,7 @@
       cont.innerHTML = jugadores.map((j, index) => `
         <div class="player-edit">
           <div class="player-edit-top">
-            <p class="player-edit-name">${j.nombre || "Sin nombre"}</p>
+            <p class="player-edit-name">${escapeHtml(j.nombre || "Sin nombre")}</p>
             <div class="player-edit-actions">
               <button class="mini-btn" onclick="guardarCambiosJugador(${index})">GUARDAR</button>
               <button class="mini-btn danger" onclick="borrarJugador(${index})">BORRAR</button>
@@ -480,8 +525,6 @@
               value="${Number(j.puntos || 0)}"
               placeholder="Puntos"
             />
-          </div>
-          <div class="edit-grid" style="margin-top:10px;">
             <input
               id="once-${index}"
               class="number-input"
@@ -489,19 +532,9 @@
               value="${Number(j.once || 0)}"
               placeholder="Once ideal"
             />
-            <div></div>
           </div>
         </div>
       `).join("");
-    }
-
-    function escapeHtml(text) {
-      return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
     }
 
     function guardarCambiosJugador(index) {
@@ -538,6 +571,100 @@
       document.getElementById("estado").textContent = "Jugador añadido.";
     }
 
+    function importarComuniate() {
+      const texto = document.getElementById("textoComuniate").value;
+      if (!texto.trim()) {
+        document.getElementById("estado").textContent = "Pega primero el texto de Comuniate.";
+        return;
+      }
+
+      const lineas = texto
+        .split("\n")
+        .map(l => l.trim())
+        .filter(Boolean);
+
+      const importados = [];
+
+      for (const linea of lineas) {
+        const limpia = linea.replace(/\s+/g, " ").trim();
+
+        if (!/\d/.test(limpia)) continue;
+        if (/manager|ranking|estadisticas|rachas|jornada|general/i.test(limpia)) continue;
+
+        let nombre = null;
+        let puntos = null;
+        let once = 0;
+
+        const puntosJornada = limpia.match(/(?:^|\s)(-?\d{1,3})(?:\s+\d{2,5}|$)/);
+        const numeros = limpia.match(/\d+(?:[.,]\d+)?/g) || [];
+
+        const nombreMatch = limpia.match(/^\d+\s+(.+?)\s+\d/);
+        if (nombreMatch) {
+          nombre = nombreMatch[1].trim();
+        } else {
+          const sinInicio = limpia.replace(/^\d+\s+/, "");
+          const probable = sinInicio.match(/^([A-Za-zÁÉÍÓÚáéíóúÑñ'´`.\- ]+?)\s+\d/);
+          if (probable) nombre = probable[1].trim();
+        }
+
+        if (!nombre) continue;
+
+        const enteros = (limpia.match(/-?\d+/g) || []).map(Number);
+
+        // Heurística para coger la puntuación de jornada:
+        // normalmente es el penúltimo entero visible antes del total general
+        if (enteros.length >= 2) {
+          puntos = enteros[enteros.length - 2];
+        } else if (enteros.length === 1) {
+          puntos = enteros[0];
+        }
+
+        const onceMatch = limpia.match(/11\s*=\s*([0-9]+(?:[.,][0-9]+)?)/i);
+        if (onceMatch) {
+          once = 0;
+        }
+
+        if (nombre && Number.isFinite(puntos)) {
+          importados.push({
+            nombre,
+            puntos,
+            once
+          });
+        }
+      }
+
+      if (!importados.length) {
+        document.getElementById("estado").textContent = "No he podido leer nombres y puntos. Prueba con el modo listado de Comuniate.";
+        return;
+      }
+
+      const mapaExistentes = new Map(
+        jugadores.map(j => [normalizarNombre(j.nombre), { ...j }])
+      );
+
+      for (const j of importados) {
+        const key = normalizarNombre(j.nombre);
+        if (mapaExistentes.has(key)) {
+          const actual = mapaExistentes.get(key);
+          actual.puntos = j.puntos;
+          mapaExistentes.set(key, actual);
+        } else {
+          mapaExistentes.set(key, {
+            nombre: j.nombre,
+            puntos: j.puntos,
+            once: 0
+          });
+        }
+      }
+
+      jugadores = Array.from(mapaExistentes.values())
+        .sort((a, b) => normalizarNombre(a.nombre).localeCompare(normalizarNombre(b.nombre), "es"));
+
+      guardarJugadores();
+      renderEditor();
+      document.getElementById("estado").textContent = `Importados ${importados.length} jugadores desde Comuniate. Revisa el once ideal si hace falta.`;
+    }
+
     function renderResumen(data) {
       const resultado = document.getElementById("resultado");
 
@@ -550,8 +677,8 @@
         <div class="player">
           <div class="player-top">
             <div>
-              <p class="player-name">${medalla(j.posicion)} ${j.nombre}</p>
-              <p class="player-meta">${j.puntos} pts · Puesto ${j.posicion}</p>
+              <p class="player-name">${medalla(j.posicion)} ${escapeHtml(j.nombre)}</p>
+              <p class="player-meta">${j.puntos} pts · Puesto ${j.posicion} · Once ideal: ${j.once}</p>
             </div>
             <div class="badge-total">
               <div class="small">Total</div>
@@ -561,15 +688,19 @@
 
           <div class="details">
             <div class="detail">
+              <div class="d-label">Posición</div>
+              <div class="d-value">${j.posicion}</div>
+            </div>
+            <div class="detail">
               <div class="d-label">Premio</div>
               <div class="d-value">${euros(j.premio)}</div>
             </div>
             <div class="detail">
-              <div class="d-label">Bonus</div>
+              <div class="d-label">Bonus pts</div>
               <div class="d-value">${euros(j.bonus)}</div>
             </div>
             <div class="detail">
-              <div class="d-label">Once</div>
+              <div class="d-label">Bonus once</div>
               <div class="d-value">${euros(j.bonusOnce)}</div>
             </div>
           </div>
@@ -618,12 +749,13 @@
         }
 
         const res = await fetch(API + "/confirmar", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(ultimoResumen)
-});
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(ultimoResumen)
+        });
+
         const txt = await res.text();
 
         if (!res.ok) throw new Error(txt || "No se pudo enviar el pago.");
