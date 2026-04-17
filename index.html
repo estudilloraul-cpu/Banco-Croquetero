@@ -1,108 +1,431 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Banco Croquetero</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Banco Croquetero</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
-body {
-  font-family: Arial;
-  background: #f4f8f3;
-  margin: 0;
-  padding: 0;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f8f3;
+      color: #1f2937;
+    }
 
-header {
-  background: #2f9e44;
-  color: white;
-  padding: 20px;
-  text-align: center;
-}
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: 32px;
+    }
 
-button {
-  width: 45%;
-  padding: 15px;
-  margin: 10px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  cursor: pointer;
-}
+    .header {
+      background: linear-gradient(135deg, #2f9e44, #24863a);
+      color: white;
+      padding: 24px 20px 28px;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      box-shadow: 0 10px 24px rgba(47, 158, 68, 0.25);
+    }
 
-.pre {
-  background: white;
-}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
 
-.pago {
-  background: #2f9e44;
-  color: white;
-}
+    .logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: #d9a441;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.12);
+    }
 
-.container {
-  text-align: center;
-  padding: 20px;
-}
+    .title-top {
+      margin: 0 0 4px;
+      font-size: 13px;
+      opacity: 0.9;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
 
-.card {
-  background: white;
-  margin: 10px;
-  padding: 15px;
-  border-radius: 10px;
-}
+    .title-main {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
 
-.total {
-  font-size: 18px;
-  color: #2f9e44;
-  font-weight: bold;
-}
-</style>
+    .content {
+      padding: 18px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: -20px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 16px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #1f2937;
+    }
+
+    .btn-primary {
+      background: #2f9e44;
+      color: white;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .status-title,
+    .section-title,
+    .mini-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #6b7280;
+      margin: 0 0 8px;
+    }
+
+    .status-text {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .summary-value {
+      font-size: 30px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0;
+    }
+
+    .summary-box {
+      min-width: 90px;
+      background: #edf7ef;
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .summary-box .number {
+      font-size: 22px;
+      font-weight: 800;
+      color: #2f9e44;
+      margin: 4px 0 0;
+    }
+
+    .player-card {
+      border-top: 1px solid #f0f2f4;
+      padding: 16px;
+    }
+
+    .player-card:first-child {
+      border-top: none;
+    }
+
+    .player-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .player-name {
+      margin: 0 0 4px;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .player-meta {
+      margin: 0;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .total-badge {
+      background: #edf7ef;
+      color: #1f7a33;
+      padding: 10px 12px;
+      border-radius: 14px;
+      min-width: 120px;
+      text-align: right;
+    }
+
+    .total-badge .label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .total-badge .value {
+      font-size: 17px;
+      font-weight: 800;
+      color: #2f9e44;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .detail-box {
+      background: #f8faf9;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .detail-box .label {
+      font-size: 11px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .detail-box .value {
+      font-size: 13px;
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .empty {
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+      padding: 30px 16px;
+    }
+
+    .footer-space {
+      height: 10px;
+    }
+
+    @media (max-width: 420px) {
+      .title-main {
+        font-size: 24px;
+      }
+
+      .summary-value {
+        font-size: 24px;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .player-top {
+        flex-direction: column;
+      }
+
+      .total-badge {
+        width: 100%;
+        text-align: left;
+      }
+    }
+  </style>
 </head>
-
 <body>
-
-<header>
-  <h1>🧆 BANCO CROQUETERO</h1>
-  <p>Croquetas Power</p>
-</header>
-
-<div class="container">
-
-<button class="pre" onclick="preview()">PREVISUALIZAR</button>
-<button class="pago" onclick="confirmar()">💸 PAGO</button>
-
-<div id="resultado"></div>
-
-</div>
-
-<script>
-
-const API = "https://banco-croquetero.onrender.com";
-
-async function preview() {
-  const res = await fetch(API + "/pagos");
-  const data = await res.json();
-
-  let html = "";
-
-  data.forEach(j => {
-    html += `
-      <div class="card">
-        <h3>${j.nombre}</h3>
-        <p>${j.puntos} pts | Pos ${j.posicion}</p>
-        <p class="total">+${j.total.toLocaleString("es-ES")}€</p>
+  <div class="app">
+    <div class="header">
+      <div class="brand">
+        <div class="logo">🧆</div>
+        <div>
+          <p class="title-top">Croquetas Power</p>
+          <h1 class="title-main">BANCO CROQUETERO</h1>
+        </div>
       </div>
-    `;
-  });
+    </div>
 
-  document.getElementById("resultado").innerHTML = html;
-}
+    <div class="content">
+      <div class="actions">
+        <button class="btn-secondary" id="btnPreview" onclick="preview()">PREVISUALIZAR</button>
+        <button class="btn-primary" id="btnPago" onclick="confirmar()">💸 PAGO</button>
+      </div>
 
-async function confirmar() {
-  await fetch(API + "/confirmar");
-  alert("💸 Pagos enviados");
-}
+      <div class="card">
+        <p class="status-title">Estado</p>
+        <p class="status-text" id="estado">Pulsa PREVISUALIZAR para cargar los pagos.</p>
+      </div>
 
-</script>
+      <div class="card">
+        <div class="summary-row">
+          <div>
+            <p class="mini-label">Total jornada</p>
+            <p class="summary-value" id="totalJornada">0 €</p>
+          </div>
+          <div class="summary-box">
+            <p class="mini-label">Jugadores</p>
+            <p class="number" id="numJugadores">0</p>
+          </div>
+        </div>
+      </div>
 
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 16px 16px 10px;">
+          <p class="section-title" style="margin-bottom: 0;">Resumen de pagos</p>
+        </div>
+        <div id="resultado">
+          <div class="empty">Todavía no hay datos cargados.</div>
+        </div>
+      </div>
+
+      <div class="footer-space"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://banco-croquetero.onrender.com";
+
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString("es-ES") + "€";
+    }
+
+    function getMedal(posicion) {
+      if (posicion === 1) return "🥇";
+      if (posicion === 2) return "🥈";
+      if (posicion === 3) return "🥉";
+      return "⚽";
+    }
+
+    async function preview() {
+      const btn = document.getElementById("btnPreview");
+      const estado = document.getElementById("estado");
+      const resultado = document.getElementById("resultado");
+
+      btn.disabled = true;
+      btn.textContent = "CARGANDO...";
+      estado.textContent = "Cargando pagos...";
+
+      try {
+        const res = await fetch(API + "/pagos");
+        if (!res.ok) throw new Error("No se pudieron cargar los pagos.");
+
+        const data = await res.json();
+
+        const total = data.reduce((acc, j) => acc + (j.total || 0), 0);
+        document.getElementById("totalJornada").textContent = formatMoney(total);
+        document.getElementById("numJugadores").textContent = data.length;
+        estado.textContent = "Resumen cargado correctamente.";
+
+        if (!data.length) {
+          resultado.innerHTML = '<div class="empty">No hay pagos disponibles.</div>';
+          return;
+        }
+
+        resultado.innerHTML = data.map(j => `
+          <div class="player-card">
+            <div class="player-top">
+              <div>
+                <p class="player-name">${getMedal(j.posicion)} ${j.nombre}</p>
+                <p class="player-meta">${j.puntos} pts · Puesto ${j.posicion}</p>
+              </div>
+              <div class="total-badge">
+                <div class="label">Total</div>
+                <div class="value">+${formatMoney(j.total || 0)}</div>
+              </div>
+            </div>
+
+            <div class="detail-grid">
+              <div class="detail-box">
+                <div class="label">Premio</div>
+                <div class="value">${formatMoney(j.premio || 0)}</div>
+              </div>
+              <div class="detail-box">
+                <div class="label">Bonus</div>
+                <div class="value">${formatMoney(j.bonus || 0)}</div>
+              </div>
+              <div class="detail-box">
+                <div class="label">Once</div>
+                <div class="value">${formatMoney(j.bonusOnce || 0)}</div>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      } catch (error) {
+        estado.textContent = error.message || "Error al cargar pagos.";
+        resultado.innerHTML = '<div class="empty">No se pudo cargar la información.</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "PREVISUALIZAR";
+      }
+    }
+
+    async function confirmar() {
+      const btn = document.getElementById("btnPago");
+      const estado = document.getElementById("estado");
+
+      btn.disabled = true;
+      btn.textContent = "ENVIANDO...";
+      estado.textContent = "Enviando pagos a Telegram...";
+
+      try {
+        const res = await fetch(API + "/confirmar");
+        const text = await res.text();
+
+        if (!res.ok) throw new Error(text || "No se pudo enviar el pago.");
+
+        estado.textContent = text || "Pagos enviados correctamente.";
+        alert("💸 Pagos enviados");
+      } catch (error) {
+        estado.textContent = error.message || "Error enviando pagos.";
+        alert("❌ Error al enviar pagos");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "💸 PAGO";
+      }
+    }
+  </script>
 </body>
 </html>
