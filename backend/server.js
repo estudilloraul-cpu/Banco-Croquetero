@@ -138,9 +138,10 @@ async function obtenerDatosComunio() {
   }
 
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  });
+  headless: true,
+  executablePath: puppeteer.executablePath(),
+  args: ["--no-sandbox", "--disable-setuid-sandbox"]
+});
 
   try {
     const page = await browser.newPage();
