@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Banco Croquetero</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f8f3;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: #2f9e44;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+button {
+  width: 45%;
+  padding: 15px;
+  margin: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.pre {
+  background: white;
+}
+
+.pago {
+  background: #2f9e44;
+  color: white;
+}
+
+.container {
+  text-align: center;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.total {
+  font-size: 18px;
+  color: #2f9e44;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🧆 BANCO CROQUETERO</h1>
+  <p>Croquetas Power</p>
+</header>
+
+<div class="container">
+
+<button class="pre" onclick="preview()">PREVISUALIZAR</button>
+<button class="pago" onclick="confirmar()">💸 PAGO</button>
+
+<div id="resultado"></div>
+
+</div>
+
+<script>
+
+const API = "https://banco-croquetero.onrender.com";
+
+async function preview() {
+  const res = await fetch(API + "/pagos");
+  const data = await res.json();
+
+  let html = "";
+
+  data.forEach(j => {
+    html += `
+      <div class="card">
+        <h3>${j.nombre}</h3>
+        <p>${j.puntos} pts | Pos ${j.posicion}</p>
+        <p class="total">+${j.total.toLocaleString("es-ES")}€</p>
+      </div>
+    `;
+  });
+
+  document.getElementById("resultado").innerHTML = html;
+}
+
+async function confirmar() {
+  await fetch(API + "/confirmar");
+  alert("💸 Pagos enviados");
+}
+
+</script>
+
+</body>
+</html>
