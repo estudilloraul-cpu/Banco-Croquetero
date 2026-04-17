@@ -248,7 +248,9 @@ async function obtenerDatosComunio() {
   }
 }
 
-app.get("/", (req, res) => {
+app.get("/pagos", async (req, res) => {
+  res.json({ status: "ok", mensaje: "Backend vivo" });
+});
   res.send("🧆 Banco Croquetero backend OK");
 });
 
