@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Banco Croquetero</title>
+</head>
+<body>
+
+<h1>🧆 BANCO CROQUETERO</h1>
+
+<button onclick="preview()">PREVISUALIZAR</button>
+<button onclick="confirmar()">CONFIRMAR + NOTIFICAR</button>
+
+<div id="resultado"></div>
+
+<script>
+async function preview() {
+  const res = await fetch("http://127.0.0.1:3000/pagos");
+  const data = await res.json();
+
+  const div = document.getElementById("resultado");
+  div.innerHTML = "";
+
+  data.forEach(j => {
+    div.innerHTML += `<p>${j.nombre}: ${j.total}€</p>`;
+  });
+}
+
+async function confirmar() {
+  await fetch("http://127.0.0.1:3000/confirmar");
+  alert("Notificación enviada");
+}
+</script>
+
+</body>
+</html>
