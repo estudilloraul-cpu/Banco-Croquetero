@@ -9,11 +9,9 @@ app.use(express.json());
 
 const TOKEN = process.env.TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
-
 const COMUNIO_USER = process.env.COMUNIO_USER;
 const COMUNIO_PASSWORD = process.env.COMUNIO_PASSWORD;
 
-// Cambia esto si tu URL de liga es otra
 const COMUNIO_LOGIN_URL = "https://www.comunio.es/login";
 const COMUNIO_BASE_URL = "https://www.comunio.es";
 
@@ -48,10 +46,6 @@ function calcularPagos(data) {
   });
 }
 
-function euros(n) {
-  return Number(n || 0).toLocaleString("es-ES") + "€";
-}
-
 function icono(pos) {
   if (pos === 1) return "🥇";
   if (pos === 2) return "🥈";
@@ -59,12 +53,85 @@ function icono(pos) {
   return "▪️";
 }
 
-/**
- * IMPORTANTE:
- * Los selectores de Comunio pueden cambiar.
- * Este bloque intenta una lectura genérica y seguramente habrá que ajustarlo
- * viendo el HTML real de tu cuenta.
- */
+async function typeFirst(page, selectors, value) {
+  for (const selector of selectors) {
+    const el = await page.$(selector);
+    if (el) {
+      await page.click(selector, { clickCount: 3 });
+      await page.type(selector, value);
+      return true;
+    }
+  }
+  return false;
+}
+
+async function clickFirst(page, selectors) {
+  for (const selector of selectors) {
+    const el = await page.$(selector);
+    if (el) {
+      await Promise.allSettled([
+        page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }),
+        page.click(selector)
+      ]);
+      return true;
+    }
+  }
+  return false;
+}
+
+async function extraerJugadoresDesdeTablas(page) {
+  return await page.evaluate(() => {
+    const filas = Array.from(document.querySelectorAll("table tr"));
+    const resultados = [];
+
+    filas.forEach((tr) => {
+      const tds = Array.from(tr.querySelectorAll("td")).map(td =>
+        td.innerText.trim().replace(/\s+/g, " ")
+      );
+
+      if (tds.length < 2) return;
+
+      let nombre = null;
+      let puntos = null;
+
+      for (const celda of tds) {
+        if (!nombre && /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(celda) && !/pts|puntos/i.test(celda)) {
+          nombre = celda;
+        }
+
+        if (puntos === null && /^\d+$/.test(celda)) {
+          puntos = Number(celda);
+        }
+      }
+
+      if (nombre && Number.isFinite(puntos)) {
+        resultados.push({
+          nombre,
+          puntos,
+          posicion: resultados.length + 1,
+          once: 0
+        });
+      }
+    });
+
+    const unicos = [];
+    const vistos = new Set();
+
+    for (const j of resultados) {
+      const key = `${j.nombre}-${j.puntos}`;
+      if (!vistos.has(key)) {
+        vistos.add(key);
+        unicos.push({
+          ...j,
+          posicion: unicos.length + 1
+        });
+      }
+    }
+
+    return unicos;
+  });
+}
+
 async function obtenerDatosComunio() {
   if (!COMUNIO_USER || !COMUNIO_PASSWORD) {
     throw new Error("Faltan COMUNIO_USER o COMUNIO_PASSWORD");
@@ -77,14 +144,17 @@ async function obtenerDatosComunio() {
 
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1400, height: 1200 });
+    await page.setViewport({ width: 1440, height: 1200 });
 
-    await page.goto(COMUNIO_LOGIN_URL, { waitUntil: "networkidle2", timeout: 60000 });
+    await page.goto(COMUNIO_LOGIN_URL, {
+      waitUntil: "networkidle2",
+      timeout: 60000
+    });
 
-    // Ajusta estos selectores si no coinciden
     const userSelectors = [
       'input[name="login"]',
       'input[name="username"]',
+      'input[name="user"]',
       '#login_username',
       'input[type="text"]'
     ];
@@ -95,76 +165,29 @@ async function obtenerDatosComunio() {
       'input[type="password"]'
     ];
 
-    async function typeFirst(selectors, value) {
-      for (const selector of selectors) {
-        const exists = await page.$(selector);
-        if (exists) {
-          await page.click(selector, { clickCount: 3 });
-          await page.type(selector, value);
-          return true;
-        }
-      }
-      return false;
-    }
+    const submitSelectors = [
+      'button[type="submit"]',
+      'input[type="submit"]',
+      'button'
+    ];
 
-    const typedUser = await typeFirst(userSelectors, COMUNIO_USER);
-    const typedPass = await typeFirst(passSelectors, COMUNIO_PASSWORD);
+    const typedUser = await typeFirst(page, userSelectors, COMUNIO_USER);
+    const typedPass = await typeFirst(page, passSelectors, COMUNIO_PASSWORD);
 
     if (!typedUser || !typedPass) {
       throw new Error("No encuentro los campos de login de Comunio");
     }
 
-    const submitSelectors = [
-      'button[type="submit"]',
-      'input[type="submit"]',
-      'button',
-    ];
-
-    let submitted = false;
-    for (const selector of submitSelectors) {
-      const el = await page.$(selector);
-      if (el) {
-        await Promise.allSettled([
-          page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }),
-          page.click(selector)
-        ]);
-        submitted = true;
-        break;
-      }
-    }
+    const submitted = await clickFirst(page, submitSelectors);
 
     if (!submitted) {
       throw new Error("No encuentro el botón de login de Comunio");
     }
 
-    // Espera extra por si hay redirecciones
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // Intento 1: leer una tabla genérica de clasificación/puntos
-    let jugadores = await page.evaluate(() => {
-      const filas = Array.from(document.querySelectorAll("table tr"));
-      const resultados = [];
+    let jugadores = await extraerJugadoresDesdeTablas(page);
 
-      filas.forEach((tr, index) => {
-        const tds = Array.from(tr.querySelectorAll("td")).map(td => td.innerText.trim());
-        if (tds.length >= 2) {
-          const nombre = tds.find(x => /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(x) && !/pts|puntos/i.test(x));
-          const puntosTxt = tds.find(x => /^\d+$/.test(x));
-          if (nombre && puntosTxt) {
-            resultados.push({
-              nombre,
-              puntos: Number(puntosTxt),
-              posicion: resultados.length + 1,
-              once: 0
-            });
-          }
-        }
-      });
-
-      return resultados;
-    });
-
-    // Intento 2: si la home no sirve, prueba una página típica de clasificación
     if (!jugadores.length) {
       const posiblesRutas = [
         "/ranking",
@@ -176,33 +199,18 @@ async function obtenerDatosComunio() {
 
       for (const ruta of posiblesRutas) {
         try {
-          await page.goto(COMUNIO_BASE_URL + ruta, { waitUntil: "networkidle2", timeout: 25000 });
-
-          jugadores = await page.evaluate(() => {
-            const filas = Array.from(document.querySelectorAll("table tr"));
-            const resultados = [];
-
-            filas.forEach((tr) => {
-              const tds = Array.from(tr.querySelectorAll("td")).map(td => td.innerText.trim());
-              if (tds.length >= 2) {
-                const nombre = tds.find(x => /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(x) && !/pts|puntos/i.test(x));
-                const puntosTxt = tds.find(x => /^\d+$/.test(x));
-                if (nombre && puntosTxt) {
-                  resultados.push({
-                    nombre,
-                    puntos: Number(puntosTxt),
-                    posicion: resultados.length + 1,
-                    once: 0
-                  });
-                }
-              }
-            });
-
-            return resultados;
+          await page.goto(COMUNIO_BASE_URL + ruta, {
+            waitUntil: "networkidle2",
+            timeout: 25000
           });
 
-          if (jugadores.length) break;
-        } catch (_) {}
+          jugadores = await extraerJugadoresDesdeTablas(page);
+
+          if (jugadores.length) {
+            break;
+          }
+        } catch (e) {
+        }
       }
     }
 
@@ -240,7 +248,8 @@ app.get("/confirmar", async (req, res) => {
     const jugadores = await obtenerDatosComunio();
     const pagos = calcularPagos(jugadores);
 
-    let mensaje = `🧆 <b>BANCO CROQUETERO</b>\n\n`;
+    let mensaje = "🧆 <b>BANCO CROQUETERO</b>\n\n";
+
     pagos.forEach(j => {
       mensaje += `${icono(j.posicion)} <b>${j.nombre}</b> (${j.puntos} pts)\n`;
       mensaje += `💸 +${j.total.toLocaleString("es-ES")}€\n\n`;
