@@ -138,10 +138,10 @@ async function obtenerDatosComunio() {
   }
 
   const browser = await puppeteer.launch({
-  headless: true,
-  executablePath: puppeteer.executablePath(),
-  args: ["--no-sandbox", "--disable-setuid-sandbox"]
-});
+    headless: true,
+    executablePath: puppeteer.executablePath(),
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  });
 
   try {
     const page = await browser.newPage();
@@ -207,11 +207,8 @@ async function obtenerDatosComunio() {
 
           jugadores = await extraerJugadoresDesdeTablas(page);
 
-          if (jugadores.length) {
-            break;
-          }
-        } catch (e) {
-        }
+          if (jugadores.length) break;
+        } catch (e) {}
       }
     }
 
