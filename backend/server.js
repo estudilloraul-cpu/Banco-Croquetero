@@ -12,8 +12,12 @@ const CHAT_ID = process.env.CHAT_ID;
 const COMUNIO_USER = process.env.COMUNIO_USER;
 const COMUNIO_PASSWORD = process.env.COMUNIO_PASSWORD;
 
-const COMUNIO_LOGIN_URL = "https://www.comunio.es/login";
-const COMUNIO_BASE_URL = "https://www.comunio.es";
+const COMUNIO_LOGIN_URL = "https://classic.comunio.es/";
+const COMUNIO_FALLBACK_URLS = [
+  "https://www.comunio.es/login",
+  "https://www.comunio.es/",
+  "https://classic.comunio.es/"
+];
 
 function calcularPagos(data) {
   const premios = {
@@ -59,10 +63,10 @@ async function typeFirst(page, selectors, value) {
     if (el) {
       await page.click(selector, { clickCount: 3 });
       await page.type(selector, value);
-      return true;
+      return selector;
     }
   }
-  return false;
+  return null;
 }
 
 async function clickFirst(page, selectors) {
@@ -73,10 +77,10 @@ async function clickFirst(page, selectors) {
         page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }),
         page.click(selector)
       ]);
-      return true;
+      return selector;
     }
   }
-  return false;
+  return null;
 }
 
 async function extraerJugadoresDesdeTablas(page) {
@@ -99,7 +103,7 @@ async function extraerJugadoresDesdeTablas(page) {
           nombre = celda;
         }
 
-        if (puntos === null && /^\d+$/.test(celda)) {
+        if (puntos === null && /^-?\d+$/.test(celda)) {
           puntos = Number(celda);
         }
       }
@@ -132,6 +136,51 @@ async function extraerJugadoresDesdeTablas(page) {
   });
 }
 
+async function intentarLoginEnPagina(page) {
+  const userSelectors = [
+    'input[name="login"]',
+    'input[name="username"]',
+    'input[name="user"]',
+    'input[name="nick"]',
+    'input[name="user_login"]',
+    '#login_username',
+    '#username',
+    '#user',
+    'input[type="text"]'
+  ];
+
+  const passSelectors = [
+    'input[name="password"]',
+    'input[name="pass"]',
+    'input[name="user_password"]',
+    '#login_password',
+    '#password',
+    'input[type="password"]'
+  ];
+
+  const submitSelectors = [
+    'button[type="submit"]',
+    'input[type="submit"]',
+    'button[name="login"]',
+    'button'
+  ];
+
+  const userSelector = await typeFirst(page, userSelectors, COMUNIO_USER);
+  const passSelector = await typeFirst(page, passSelectors, COMUNIO_PASSWORD);
+
+  if (!userSelector || !passSelector) {
+    return false;
+  }
+
+  const submitSelector = await clickFirst(page, submitSelectors);
+  if (!submitSelector) {
+    throw new Error("No encuentro el botón de login de Comunio");
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  return true;
+}
+
 async function obtenerDatosComunio() {
   if (!COMUNIO_USER || !COMUNIO_PASSWORD) {
     throw new Error("Faltan COMUNIO_USER o COMUNIO_PASSWORD");
@@ -147,66 +196,43 @@ async function obtenerDatosComunio() {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 1200 });
 
-    await page.goto(COMUNIO_LOGIN_URL, {
-      waitUntil: "networkidle2",
-      timeout: 60000
-    });
+    let loginHecho = false;
 
-    const userSelectors = [
-      'input[name="login"]',
-      'input[name="username"]',
-      'input[name="user"]',
-      '#login_username',
-      'input[type="text"]'
-    ];
+    for (const url of [COMUNIO_LOGIN_URL, ...COMUNIO_FALLBACK_URLS]) {
+      try {
+        await page.goto(url, {
+          waitUntil: "networkidle2",
+          timeout: 60000
+        });
 
-    const passSelectors = [
-      'input[name="password"]',
-      '#login_password',
-      'input[type="password"]'
-    ];
+        loginHecho = await intentarLoginEnPagina(page);
+        if (loginHecho) break;
+      } catch (e) {}
+    }
 
-    const submitSelectors = [
-      'button[type="submit"]',
-      'input[type="submit"]',
-      'button'
-    ];
-
-    const typedUser = await typeFirst(page, userSelectors, COMUNIO_USER);
-    const typedPass = await typeFirst(page, passSelectors, COMUNIO_PASSWORD);
-
-    if (!typedUser || !typedPass) {
+    if (!loginHecho) {
       throw new Error("No encuentro los campos de login de Comunio");
     }
 
-    const submitted = await clickFirst(page, submitSelectors);
-
-    if (!submitted) {
-      throw new Error("No encuentro el botón de login de Comunio");
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
     let jugadores = await extraerJugadoresDesdeTablas(page);
 
-    if (!jugadores.length) {
-      const posiblesRutas = [
-        "/ranking",
-        "/standings",
-        "/table",
-        "/points",
-        "/"
-      ];
+    const posiblesRutas = [
+      "/ranking",
+      "/standings",
+      "/table",
+      "/points",
+      "/"
+    ];
 
+    if (!jugadores.length) {
       for (const ruta of posiblesRutas) {
         try {
-          await page.goto(COMUNIO_BASE_URL + ruta, {
+          await page.goto("https://classic.comunio.es" + ruta, {
             waitUntil: "networkidle2",
             timeout: 25000
           });
 
           jugadores = await extraerJugadoresDesdeTablas(page);
-
           if (jugadores.length) break;
         } catch (e) {}
       }
